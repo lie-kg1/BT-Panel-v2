@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+BT_PANEL_VERSION="2.2.0"
+BT_PANEL_EDITION="Pterodactyl"
+
 # When sourced through `bash -c "$(curl ...)"`, BASH_SOURCE may be unset.
 # In that case, use the caller's current directory as the project directory.
 SCRIPT_SOURCE="${BASH_SOURCE[0]-}"
@@ -69,7 +72,7 @@ require_project() {
 
 show_menu() {
   printf '\n%b%s%b\n' "$BLUE" '========================================' "$RESET"
-  printf '%b%s%b\n' "$GREEN" '              🚀 BT PANEL MENU' "$RESET"
+  printf '%b%s%b\n' "$GREEN" "          🚀 BT PANEL MENU  v${BT_PANEL_VERSION} · ${BT_PANEL_EDITION}" "$RESET"
   printf '%b%s%b\n' "$BLUE" '========================================' "$RESET"
   printf '%b%s%b\n' "$CYAN" '🔹 1) Install or update dependencies' "$RESET"
   printf '%b%s%b\n' "$CYAN" '🔹 2) Create or update owner account' "$RESET"

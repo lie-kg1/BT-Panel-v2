@@ -1,4 +1,4 @@
-/* BT PANEL Beta v2.1 shared utility helpers. */
+/* BT PANEL Beta v2.2 shared utility helpers. */
 
 async function postJson(url, body) {
   const res = await fetch(url, {

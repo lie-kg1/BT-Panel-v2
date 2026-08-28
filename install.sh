@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+BT_PANEL_VERSION="2.2.0"
+BT_PANEL_EDITION="Pterodactyl"
+
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 MIN_NODE_MAJOR="${MIN_NODE_MAJOR:-20}"
 
@@ -146,7 +149,7 @@ if [[ ! -f "$ROOT_DIR/data/users.json" ]]; then
   chmod 600 "$ROOT_DIR/data/users.json"
 fi
 
-printf '\n%b%s BT Panel installation completed.%b\n\n' "$GREEN" "$SUCCESS_ICON" "$RESET"
+printf '\n%b%s BT Panel v%s (%s edition) installation completed.%b\n\n' "$GREEN" "$SUCCESS_ICON" "$BT_PANEL_VERSION" "$BT_PANEL_EDITION" "$RESET"
 printf '%b%s Next steps:%b\n' "$BLUE" "$INFO_ICON" "$RESET"
 printf '  %b🔹 1.%b Run ./owner.sh to create or update the owner account.\n' "$CYAN" "$RESET"
 printf '  %b🔹 2.%b Run ./menu.sh for the interactive launcher, or run npm start directly.\n' "$CYAN" "$RESET"

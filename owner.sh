@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+BT_PANEL_VERSION="2.2.0"
+BT_PANEL_EDITION="Pterodactyl"
+
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 USERS_FILE="${OWNER_USERS_FILE:-$ROOT_DIR/data/users.json}"
 
@@ -51,6 +54,8 @@ if [[ $# -gt 0 ]]; then
   usage >&2
   exit 2
 fi
+
+info "BT Panel v${BT_PANEL_VERSION} (${BT_PANEL_EDITION} edition) owner setup"
 
 runtime_ready=false
 if command -v node >/dev/null 2>&1; then
