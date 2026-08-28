@@ -35,6 +35,34 @@ The API surface is:
 | `POST /api/music/upload` | Upload a local audio file up to 50 MB. |
 | `DELETE /api/music/:id` | Remove a track and delete its local uploaded file when applicable. |
 
+### Pterodactyl integration
+
+BT Panel can connect to a [Pterodactyl](https://pterodactyl.io) panel so every signed-in user can see and control game servers from the **Servers** view. Administrators configure the connection under **Settings → Pterodactyl**:
+
+| Setting | Purpose |
+| --- | --- |
+| Panel URL | Base URL of the Pterodactyl panel, e.g. `https://panel.example.com`. |
+| API Key | A Client (`ptlc_…`) or Application (`ptra_…`) API key. Stored server-side in `data/pterodactyl.json` and never sent back to browsers. |
+| API Type | **Client API** (recommended) shows the key owner's servers and enables the live console. **Application API** lists servers only. |
+| Allow insecure HTTPS | Accept self-signed certificates when contacting the panel. |
+
+The Servers view provides server cards with live state, CPU/RAM/disk meters (refreshed every 5 seconds), Start/Stop/Restart/Kill power actions, and a slide-in console powered by xterm.js over the Pterodactyl websocket. Commands can be sent through the console socket or the REST fallback.
+
+The API surface is:
+
+| Endpoint | Purpose |
+| --- | --- |
+| `GET /api/pterodactyl/config` | Read connection status (key never included). |
+| `POST /api/pterodactyl/config` | Administrator-only save for panel URL, key, and API type. |
+| `POST /api/pterodactyl/test` | Administrator-only connection test. |
+| `GET /api/pterodactyl/servers` | List servers visible to the configured key. |
+| `GET /api/pterodactyl/servers/:id/resources` | Live state and resource usage for one server. |
+| `POST /api/pterodactyl/servers/:id/power` | Send `start` / `stop` / `restart` / `kill`. |
+| `POST /api/pterodactyl/servers/:id/command` | Send a console command. |
+| `GET /api/pterodactyl/servers/:id/websocket` | Fetch console websocket credentials (Client API only). |
+
+For local development you can try the integration without a real panel: set `PTERODACTYL_DEMO=1` to boot a fake Pterodactyl API with three demo servers, then point Settings → Pterodactyl at `http://127.0.0.1:48080` with any API key.
+
 The owner script uses `admin` and `admin@gmail.com` as convenience defaults for the owner username and email when no overrides are supplied, but it does not ship with a default password. For production or non-interactive setup, set `OWNER_USERNAME`, `OWNER_PASSWORD`, and `OWNER_EMAIL` environment variables. If `OWNER_PASSWORD` is omitted in an interactive terminal, the script prompts for it without echoing the password and asks for confirmation.
 
 Open <http://localhost:3000/>. The `/` route serves the dashboard for authenticated users and redirects signed-out visitors to `/login`. New accounts can be created at `/register`.

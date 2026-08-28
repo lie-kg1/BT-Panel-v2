@@ -3122,8 +3122,216 @@
           grid-template-columns: 1fr;
         }
       }
+
+      /* ── Pterodactyl Servers ── */
+      .servers-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 14px;
+        margin-top: 14px;
+      }
+      .server-card {
+        background: var(--glass-bg, rgba(255, 255, 255, 0.04));
+        border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.09));
+        border-radius: var(--radius, 16px);
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+      .server-card-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+      }
+      .server-card-name {
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--text-primary);
+        word-break: break-word;
+      }
+      .server-card-node {
+        font-size: 12px;
+        color: var(--text-dim);
+      }
+      .server-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: capitalize;
+        padding: 3px 10px;
+        border-radius: 999px;
+        border: 1px solid transparent;
+        white-space: nowrap;
+      }
+      .server-status .status-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: currentColor;
+      }
+      .server-status.status-running { color: #4ade80; border-color: rgba(74, 222, 128, 0.35); background: rgba(74, 222, 128, 0.08); }
+      .server-status.status-offline { color: #9da3b4; border-color: rgba(157, 163, 180, 0.3); background: rgba(157, 163, 180, 0.07); }
+      .server-status.status-starting { color: #facc15; border-color: rgba(250, 204, 21, 0.35); background: rgba(250, 204, 21, 0.08); }
+      .server-status.status-stopping { color: #fb923c; border-color: rgba(251, 146, 60, 0.35); background: rgba(251, 146, 60, 0.08); }
+      .server-status.status-unknown { color: #9da3b4; border-color: rgba(157, 163, 180, 0.25); background: rgba(157, 163, 180, 0.05); }
+      .server-metrics {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .server-metric {
+        display: grid;
+        grid-template-columns: 58px 1fr auto;
+        align-items: center;
+        gap: 10px;
+        font-size: 12px;
+        color: var(--text-dim);
+      }
+      .server-metric .metric-track {
+        height: 6px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.08);
+        overflow: hidden;
+      }
+      .server-metric .metric-fill {
+        height: 100%;
+        border-radius: 999px;
+        background: var(--accent, #d00000);
+        width: 0%;
+        transition: width 0.6s ease;
+      }
+      .server-metric .metric-value {
+        font-variant-numeric: tabular-nums;
+        color: var(--text-primary);
+        font-size: 11.5px;
+      }
+      .server-card-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .server-btn {
+        border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.12));
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--text-primary);
+        border-radius: 10px;
+        padding: 7px 12px;
+        font-size: 12.5px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all var(--transition-fast);
+      }
+      .server-btn:hover { background: rgba(255, 255, 255, 0.1); }
+      .server-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+      .server-btn.server-btn-start { color: #4ade80; border-color: rgba(74, 222, 128, 0.35); }
+      .server-btn.server-btn-stop { color: #fb923c; border-color: rgba(251, 146, 60, 0.35); }
+      .server-btn.server-btn-kill { color: #f87171; border-color: rgba(248, 113, 113, 0.35); }
+      .server-btn.server-btn-console { margin-left: auto; color: var(--text-primary); }
+      .servers-empty {
+        margin-top: 14px;
+        padding: 28px 18px;
+        border: 1px dashed var(--glass-border, rgba(255, 255, 255, 0.14));
+        border-radius: var(--radius, 16px);
+        text-align: center;
+        color: var(--text-dim);
+        font-size: 14px;
+      }
+      .servers-empty .servers-empty-cta {
+        margin-top: 10px;
+        display: inline-block;
+      }
+
+      /* ── Server console drawer ── */
+      .console-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.45);
+        backdrop-filter: blur(3px);
+        z-index: 80;
+        display: none;
+      }
+      .console-overlay.open { display: block; }
+      .console-drawer {
+        position: fixed;
+        top: 0;
+        right: 0;
+        height: 100vh;
+        width: min(720px, 100vw);
+        background: rgba(14, 14, 18, 0.92);
+        backdrop-filter: blur(24px) saturate(160%);
+        border-left: 1px solid var(--glass-border, rgba(255, 255, 255, 0.12));
+        z-index: 90;
+        display: flex;
+        flex-direction: column;
+        transform: translateX(105%);
+        transition: transform 0.28s ease;
+      }
+      .console-drawer.open { transform: translateX(0); }
+      .console-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 14px 18px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      }
+      .console-title { font-size: 14.5px; font-weight: 600; color: var(--text-primary); }
+      .console-subtitle { font-size: 12px; color: var(--text-dim); }
+      .console-close {
+        margin-left: auto;
+        border: none;
+        background: rgba(255, 255, 255, 0.06);
+        color: var(--text-primary);
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 15px;
+      }
+      .console-close:hover { background: rgba(255, 255, 255, 0.12); }
+      .console-body {
+        flex: 1;
+        min-height: 0;
+        padding: 12px 14px;
+        background: #0a0a0d;
+      }
+      .console-body .xterm { height: 100%; }
+      .console-input-row {
+        display: flex;
+        gap: 10px;
+        padding: 12px 14px;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+      }
+      .console-input-row input {
+        flex: 1;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 10px;
+        padding: 10px 12px;
+        color: var(--text-primary);
+        font-size: 13px;
+        font-family: "SFMono-Regular", Consolas, monospace;
+        outline: none;
+      }
+      .console-input-row input:focus { border-color: var(--accent, #d00000); }
+      .console-input-row button {
+        border: none;
+        border-radius: 10px;
+        padding: 0 18px;
+        background: var(--accent, #d00000);
+        color: #fff;
+        font-weight: 600;
+        font-size: 13px;
+        cursor: pointer;
+      }
     </style>
     <link rel="stylesheet" href="/css/panel.css" />
+    <link rel="stylesheet" href="/vendor/xterm.min.css" />
+    <script src="/vendor/xterm.min.js" defer></script>
+    <script src="/vendor/addon-fit.min.js" defer></script>
   </head>
   <body>
     <!-- Background Layers -->
@@ -3242,6 +3450,23 @@
               <circle cx="16" cy="16" r="3"></circle>
             </svg>
             <span class="nav-label">Music</span>
+          </button>
+
+          <button
+            class="nav-item"
+            id="nav-servers"
+            onclick="switchView('servers')"
+            aria-label="Servers"
+            role="tab"
+            aria-selected="false"
+          >
+            <svg width="128" height="128" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect>
+              <rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect>
+              <line x1="6" y1="6" x2="6.01" y2="6"></line>
+              <line x1="6" y1="18" x2="6.01" y2="18"></line>
+            </svg>
+            <span class="nav-label">Servers</span>
           </button>
           <div class="nav-section-label admin-only admin-section-heading" style="display: none">
 
@@ -3549,6 +3774,7 @@
               <button class="settings-tab" id="settings-tab-wallpapers" type="button" role="tab" aria-selected="false" aria-controls="settings-panel-wallpapers" onclick="switchSettingsTab('wallpapers')">4K Wallpapers</button>
               <button class="settings-tab" id="settings-tab-music" type="button" role="tab" aria-selected="false" aria-controls="settings-panel-music" onclick="switchSettingsTab('music')">Music</button>
               <button class="settings-tab" id="settings-tab-bars" type="button" role="tab" aria-selected="false" aria-controls="settings-panel-bars" onclick="switchSettingsTab('bars')">Bars</button>
+              <button class="settings-tab" id="settings-tab-pterodactyl" type="button" role="tab" aria-selected="false" aria-controls="settings-panel-pterodactyl" onclick="switchSettingsTab('pterodactyl')">Pterodactyl</button>
             </div>
             <section class="settings-tab-panel active" id="settings-panel-appearance" role="tabpanel" aria-labelledby="settings-tab-appearance">
               <div class="card">
@@ -3994,8 +4220,100 @@
             </div>
           </div>
         </section>
+
+        <section class="settings-tab-panel" id="settings-panel-pterodactyl" role="tabpanel" aria-labelledby="settings-tab-pterodactyl">
+          <div class="card">
+            <div class="card-toolbar settings-card-heading">
+              <div>
+                <h2>Pterodactyl Integration</h2>
+                <p>Connect BT Panel to a Pterodactyl panel to manage game servers from the Servers view.</p>
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="general-settings-grid">
+                <div class="settings-field-card">
+                  <div class="form-group">
+                    <label class="form-label" for="pterodactylPanelUrl">Panel URL</label>
+                    <input class="input" type="text" id="pterodactylPanelUrl" placeholder="https://panel.example.com" autocomplete="off" oninput="updatePterodactylSetting('panelUrl', this.value)" />
+                    <div class="form-hint">The base URL of your Pterodactyl panel.</div>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="pterodactylApiType">API Type</label>
+                    <select class="input" id="pterodactylApiType" onchange="updatePterodactylSetting('apiType', this.value)">
+                      <option value="client">Client API (recommended)</option>
+                      <option value="application">Application API</option>
+                    </select>
+                    <div class="form-hint">Client keys (ptlc_) support the live console; Application keys (ptra_) list servers only.</div>
+                  </div>
+                </div>
+                <div class="settings-field-card">
+                  <div class="form-group">
+                    <label class="form-label" for="pterodactylApiKey">API Key</label>
+                    <input class="input" type="password" id="pterodactylApiKey" placeholder="ptlc_… or ptra_…" autocomplete="new-password" oninput="updatePterodactylSetting('apiKey', this.value)" />
+                    <div class="form-hint">Stored server-side only. Leave blank to keep the current key.</div>
+                  </div>
+                  <div class="settings-toggle-row" style="margin-top: 6px">
+                    <div class="settings-toggle-copy"><strong>Allow insecure HTTPS</strong><span>Accept self-signed certificates when contacting the panel (not recommended).</span></div>
+                    <label class="music-switch"><input type="checkbox" id="pterodactylInsecureToggle" onchange="updatePterodactylSetting('allowInsecure', this.checked)" /><span aria-hidden="true"></span></label>
+                  </div>
+                </div>
+              </div>
+              <div class="settings-preview" style="margin-top: 14px">
+                <div class="settings-preview-label">Connection</div>
+                <div class="bar-preview-grid">
+                  <div class="bar-preview-item"><div class="bar-preview-label">Status</div><div class="bar-preview-value" id="pterodactylStatusPreview">Not configured</div></div>
+                  <div class="bar-preview-item"><div class="bar-preview-label">Panel</div><div class="bar-preview-value" id="pterodactylUrlPreview">—</div></div>
+                </div>
+              </div>
+              <div class="theme-actions">
+                <button class="btn btn-primary" type="button" onclick="savePterodactylSettings()" id="savePterodactylBtn">Save Pterodactyl</button>
+                <button class="btn btn-ghost" type="button" onclick="testPterodactylConnection()" id="testPterodactylBtn">Test Connection</button>
+              </div>
+            </div>
+          </div>
+        </section>
           </div>
         </div>
+
+        <!-- Servers View -->
+        <div
+          id="view-servers"
+          class="view"
+          role="tabpanel"
+          aria-labelledby="nav-servers"
+        >
+          <div class="card">
+            <div class="card-toolbar">
+              <span class="card-title">Game Servers</span>
+              <span class="card-toolbar-subtitle" id="serversPanelNote"></span>
+              <button class="btn btn-ghost" type="button" style="margin-left: auto" onclick="refreshServers()" id="serversRefreshBtn">Refresh</button>
+            </div>
+            <div class="card-body" style="min-height: auto">
+              <div id="serversEmpty" class="servers-empty" style="display: none">
+                <div id="serversEmptyMessage">No servers available.</div>
+                <button class="btn btn-primary servers-empty-cta" type="button" id="serversEmptyCta" style="display: none" onclick="openPterodactylSettings()">Connect Pterodactyl</button>
+              </div>
+              <div id="serversGrid" class="servers-grid"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Server Console Drawer -->
+        <div class="console-overlay" id="consoleOverlay" onclick="closeServerConsole()"></div>
+        <aside class="console-drawer" id="consoleDrawer" aria-label="Server console">
+          <div class="console-header">
+            <div>
+              <div class="console-title" id="consoleServerName">Console</div>
+              <div class="console-subtitle" id="consoleServerMeta">—</div>
+            </div>
+            <button class="console-close" type="button" onclick="closeServerConsole()" aria-label="Close console">✕</button>
+          </div>
+          <div class="console-body" id="consoleTerminalHost"></div>
+          <div class="console-input-row">
+            <input type="text" id="consoleCommandInput" placeholder="Type a command and press Enter…" autocomplete="off" />
+            <button type="button" onclick="sendConsoleCommand()">Send</button>
+          </div>
+        </aside>
 
         <!-- Team View -->
         <div
@@ -4476,6 +4794,7 @@
         music: "Music",
         users: "User Accounts",
         account: "My Profile",
+        servers: "Game Servers",
       };
       const VIEW_PATHS = {
         home: "/",
@@ -4484,6 +4803,7 @@
         music: "/music",
         users: "/users",
         account: "/account",
+        servers: "/servers",
       };
 
       function viewFromPathname() {
@@ -4553,9 +4873,11 @@
           switchSettingsTab(SETTINGS_TABS.includes(requestedTab) ? requestedTab : "appearance");
         }
         if (viewName === "music") switchSettingsTab("music");
+        if (viewName === "servers") initServersView();
+        if (viewName !== "servers" && serversViewActive) teardownServersView();
       }
 
-      const SETTINGS_TABS = ["appearance", "wallpapers", "general", "music", "bars"];
+      const SETTINGS_TABS = ["appearance", "wallpapers", "general", "music", "bars", "pterodactyl"];
       let wallpaperPage = 1;
       let wallpaperCategory = "all";
       let musicSettingsLoaded = false;
@@ -4601,6 +4923,7 @@
         if (activeTab === "music" && !musicSettingsLoaded) loadMusicSettings();
         if (activeTab === "general" && !generalSettingsLoaded) loadGeneralSettings();
         if (activeTab === "bars" && !barsSettingsLoaded) loadBarsSettings();
+        if (activeTab === "pterodactyl" && !pterodactylSettingsLoaded) loadPterodactylSettings();
       }
 
       async function loadGeneralSettings() {
@@ -5237,6 +5560,429 @@
       function openWallpaperStudio() {
         switchSettingsTab("wallpapers");
         document.getElementById("wallpaperSearch")?.focus();
+      }
+
+      /* ── Pterodactyl: settings ─────────────────────────────────────── */
+      let pterodactylSettings = { panelUrl: "", apiKey: "", apiType: "client", allowInsecure: false };
+      let pterodactylSettingsLoaded = false;
+      let pterodactylConfigured = false;
+
+      async function loadPterodactylSettings() {
+        if (!currentUser) return;
+        try {
+          const response = await apiFetch("/api/pterodactyl/config");
+          const result = await response.json();
+          if (!response.ok || !result.success) throw new Error(result.message || "Pterodactyl settings unavailable");
+          const cfg = result.pterodactyl || {};
+          pterodactylConfigured = Boolean(cfg.configured);
+          pterodactylSettings.panelUrl = cfg.panelUrl || "";
+          pterodactylSettings.apiType = cfg.apiType || "client";
+          pterodactylSettings.allowInsecure = Boolean(cfg.allowInsecure);
+          pterodactylSettings.apiKey = "";
+          pterodactylSettingsLoaded = true;
+          syncPterodactylControls();
+        } catch (error) {
+          showToast(error.message || "Unable to load Pterodactyl settings", "error");
+        }
+      }
+
+      function syncPterodactylControls() {
+        const urlInput = document.getElementById("pterodactylPanelUrl");
+        const keyInput = document.getElementById("pterodactylApiKey");
+        const typeSelect = document.getElementById("pterodactylApiType");
+        const insecureToggle = document.getElementById("pterodactylInsecureToggle");
+        if (urlInput && document.activeElement !== urlInput) urlInput.value = pterodactylSettings.panelUrl || "";
+        if (keyInput && document.activeElement !== keyInput) keyInput.value = "";
+        if (typeSelect) typeSelect.value = pterodactylSettings.apiType;
+        if (insecureToggle) insecureToggle.checked = pterodactylSettings.allowInsecure;
+        updatePterodactylPreview();
+      }
+
+      function updatePterodactylPreview() {
+        const status = document.getElementById("pterodactylStatusPreview");
+        const url = document.getElementById("pterodactylUrlPreview");
+        const hasKey = pterodactylSettings.apiKey.trim() !== "" || pterodactylConfigured;
+        const configured = Boolean(pterodactylSettings.panelUrl && hasKey);
+        if (status) status.textContent = configured ? "Configured" : "Not configured";
+        if (url) url.textContent = pterodactylSettings.panelUrl || "—";
+      }
+
+      function updatePterodactylSetting(key, value) {
+        if (key === "allowInsecure") pterodactylSettings.allowInsecure = Boolean(value);
+        else if (key === "apiType") pterodactylSettings.apiType = value === "application" ? "application" : "client";
+        else if (key === "panelUrl") pterodactylSettings.panelUrl = String(value || "").trim();
+        else if (key === "apiKey") pterodactylSettings.apiKey = String(value || "");
+        updatePterodactylPreview();
+      }
+
+      async function savePterodactylSettings() {
+        const button = document.getElementById("savePterodactylBtn");
+        if (button) button.disabled = true;
+        try {
+          const response = await apiFetch("/api/pterodactyl/config", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(pterodactylSettings),
+          });
+          const result = await response.json();
+          if (!response.ok || !result.success) throw new Error(result.message || "Unable to save Pterodactyl settings");
+          pterodactylConfigured = Boolean(result.pterodactyl && result.pterodactyl.configured);
+          pterodactylSettings.panelUrl = (result.pterodactyl && result.pterodactyl.panelUrl) || pterodactylSettings.panelUrl;
+          pterodactylSettings.apiType = (result.pterodactyl && result.pterodactyl.apiType) || pterodactylSettings.apiType;
+          pterodactylSettings.allowInsecure = Boolean(result.pterodactyl && result.pterodactyl.allowInsecure);
+          pterodactylSettings.apiKey = "";
+          syncPterodactylControls();
+          showToast("Pterodactyl settings saved.", "success");
+        } catch (error) {
+          showToast(error.message || "Unable to save Pterodactyl settings", "error");
+        } finally {
+          if (button) button.disabled = false;
+        }
+      }
+
+      async function testPterodactylConnection() {
+        const button = document.getElementById("testPterodactylBtn");
+        if (button) button.disabled = true;
+        try {
+          const response = await apiFetch("/api/pterodactyl/test", { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" });
+          const result = await response.json();
+          if (!response.ok || !result.success) throw new Error(result.message || "Connection failed");
+          showToast(result.message || "Connected successfully.", "success");
+        } catch (error) {
+          showToast(error.message || "Connection failed", "error");
+        } finally {
+          if (button) button.disabled = false;
+        }
+      }
+
+      function openPterodactylSettings() {
+        if (isAdmin()) switchView("settings");
+        switchSettingsTab(isAdmin() ? "pterodactyl" : "music");
+      }
+
+      /* ── Pterodactyl: servers view ─────────────────────────────────── */
+      let serversList = [];
+      let serversLoading = false;
+      let serversViewActive = false;
+      let serversResourcesTimer = null;
+      const serverResourceCache = new Map();
+
+      function initServersView() {
+        serversViewActive = true;
+        refreshServers();
+        if (serversResourcesTimer) clearInterval(serversResourcesTimer);
+        serversResourcesTimer = setInterval(refreshServerResources, 5000);
+      }
+
+      function teardownServersView() {
+        serversViewActive = false;
+        if (serversResourcesTimer) {
+          clearInterval(serversResourcesTimer);
+          serversResourcesTimer = null;
+        }
+      }
+
+      async function refreshServers() {
+        if (serversLoading) return;
+        serversLoading = true;
+        const button = document.getElementById("serversRefreshBtn");
+        if (button) button.disabled = true;
+        try {
+          const response = await apiFetch("/api/pterodactyl/servers");
+          const result = await response.json();
+          if (!response.ok || !result.success) throw new Error(result.message || "Unable to load servers");
+          serversList = Array.isArray(result.servers) ? result.servers : [];
+          pterodactylConfigured = true;
+          renderServers();
+          refreshServerResources();
+        } catch (error) {
+          serversList = [];
+          renderServersError(error.message || "Unable to load servers");
+        } finally {
+          serversLoading = false;
+          if (button) button.disabled = false;
+        }
+      }
+
+      function renderServersError(message) {
+        const grid = document.getElementById("serversGrid");
+        const empty = document.getElementById("serversEmpty");
+        const emptyMsg = document.getElementById("serversEmptyMessage");
+        const cta = document.getElementById("serversEmptyCta");
+        if (grid) grid.innerHTML = "";
+        if (empty) empty.style.display = "block";
+        if (emptyMsg) emptyMsg.textContent = message;
+        if (cta) cta.style.display = isAdmin() ? "inline-block" : "none";
+      }
+
+      function renderServers() {
+        const grid = document.getElementById("serversGrid");
+        const empty = document.getElementById("serversEmpty");
+        if (!grid) return;
+        if (!serversList.length) {
+          renderServersError("This Pterodactyl account has no servers.");
+          return;
+        }
+        if (empty) empty.style.display = "none";
+        grid.innerHTML = serversList
+          .map((server) => {
+            const res = serverResourceCache.get(server.identifier);
+            const state = res ? res.state : "unknown";
+            const statusClass = `status-${String(state).replace(/[^a-z]/g, "") || "unknown"}`;
+            const memPct = res && res.memoryLimitBytes ? Math.min(100, (res.memoryBytes / res.memoryLimitBytes) * 100) : 0;
+            const diskPct = res && server.limits && server.limits.disk ? Math.min(100, (res.diskBytes / (server.limits.disk * 1024 * 1024)) * 100) : 0;
+            const cpuVal = res && typeof res.cpuAbsolute === "number" ? res.cpuAbsolute.toFixed(1) : "0.0";
+            const cpuLimit = server.limits && server.limits.cpu ? server.limits.cpu : 100;
+            const cpuPct = Math.min(100, (Number(cpuVal) / cpuLimit) * 100);
+            const running = state === "running";
+            const offline = state === "offline";
+            return `
+              <div class="server-card" data-server-id="${escapeAttr(server.identifier)}">
+                <div class="server-card-head">
+                  <div>
+                    <div class="server-card-name">${escapeHtml(server.name || "Unnamed server")}</div>
+                    <div class="server-card-node">${escapeHtml(server.node || "")}${server.suspended ? " · suspended" : ""}</div>
+                  </div>
+                  <span class="server-status ${statusClass}"><span class="status-dot"></span>${escapeHtml(state)}</span>
+                </div>
+                <div class="server-metrics">
+                  <div class="server-metric">
+                    <span>CPU</span>
+                    <div class="metric-track"><div class="metric-fill" data-metric="cpu" style="width: ${cpuPct}%"></div></div>
+                    <span class="metric-value" data-metric-value="cpu">${cpuVal}%</span>
+                  </div>
+                  <div class="server-metric">
+                    <span>RAM</span>
+                    <div class="metric-track"><div class="metric-fill" data-metric="memory" style="width: ${memPct}%"></div></div>
+                    <span class="metric-value" data-metric-value="memory">${formatBytes(res ? res.memoryBytes : 0)}</span>
+                  </div>
+                  <div class="server-metric">
+                    <span>Disk</span>
+                    <div class="metric-track"><div class="metric-fill" data-metric="disk" style="width: ${diskPct}%"></div></div>
+                    <span class="metric-value" data-metric-value="disk">${formatBytes(res ? res.diskBytes : 0)}</span>
+                  </div>
+                </div>
+                <div class="server-card-actions">
+                  <button class="server-btn server-btn-start" type="button" ${running ? "disabled" : ""} onclick="sendPowerSignal('${escapeAttr(server.identifier)}', 'start')">Start</button>
+                  <button class="server-btn server-btn-stop" type="button" ${offline ? "disabled" : ""} onclick="sendPowerSignal('${escapeAttr(server.identifier)}', 'stop')">Stop</button>
+                  <button class="server-btn" type="button" ${offline ? "disabled" : ""} onclick="sendPowerSignal('${escapeAttr(server.identifier)}', 'restart')">Restart</button>
+                  <button class="server-btn server-btn-kill" type="button" ${offline ? "disabled" : ""} onclick="sendPowerSignal('${escapeAttr(server.identifier)}', 'kill')">Kill</button>
+                  <button class="server-btn server-btn-console" type="button" onclick="openServerConsole('${escapeAttr(server.identifier)}')">Console</button>
+                </div>
+              </div>`;
+          })
+          .join("");
+      }
+
+      function updateServerCardMetrics(identifier, res) {
+        const card = document.querySelector(`.server-card[data-server-id="${CSS.escape(identifier)}"]`);
+        if (!card) return;
+        const server = serversList.find((s) => s.identifier === identifier) || {};
+        const limits = server.limits || {};
+        const state = res.state || "unknown";
+        const statusEl = card.querySelector(".server-status");
+        if (statusEl) {
+          statusEl.className = `server-status status-${String(state).replace(/[^a-z]/g, "") || "unknown"}`;
+          statusEl.innerHTML = `<span class="status-dot"></span>${escapeHtml(state)}`;
+        }
+        const setMetric = (name, pct, text) => {
+          const fill = card.querySelector(`[data-metric="${name}"]`);
+          const value = card.querySelector(`[data-metric-value="${name}"]`);
+          if (fill) fill.style.width = `${Math.max(0, Math.min(100, pct))}%`;
+          if (value) value.textContent = text;
+        };
+        const cpuVal = typeof res.cpuAbsolute === "number" ? res.cpuAbsolute : 0;
+        const cpuLimit = limits.cpu || 100;
+        setMetric("cpu", (cpuVal / cpuLimit) * 100, `${cpuVal.toFixed(1)}%`);
+        const memPct = res.memoryLimitBytes ? (res.memoryBytes / res.memoryLimitBytes) * 100 : 0;
+        setMetric("memory", memPct, formatBytes(res.memoryBytes || 0));
+        const diskLimitBytes = (limits.disk || 0) * 1024 * 1024;
+        setMetric("disk", diskLimitBytes ? ((res.diskBytes || 0) / diskLimitBytes) * 100 : 0, formatBytes(res.diskBytes || 0));
+        const running = state === "running";
+        const offline = state === "offline";
+        card.querySelectorAll(".server-card-actions .server-btn").forEach((btn) => {
+          const label = btn.textContent.trim().toLowerCase();
+          if (label === "start") btn.disabled = running;
+          else if (label === "stop" || label === "restart" || label === "kill") btn.disabled = offline;
+        });
+      }
+
+      async function refreshServerResources() {
+        if (!serversViewActive || !serversList.length) return;
+        await Promise.all(
+          serversList.map(async (server) => {
+            try {
+              const response = await apiFetch(`/api/pterodactyl/servers/${encodeURIComponent(server.identifier)}/resources`);
+              const result = await response.json();
+              if (!response.ok || !result.success) return;
+              serverResourceCache.set(server.identifier, result.resources);
+              updateServerCardMetrics(server.identifier, result.resources);
+            } catch (_) {
+              /* keep previous values on transient failures */
+            }
+          })
+        );
+      }
+
+      async function sendPowerSignal(identifier, signal) {
+        try {
+          const response = await apiFetch(`/api/pterodactyl/servers/${encodeURIComponent(identifier)}/power`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ signal }),
+          });
+          const result = await response.json();
+          if (!response.ok || !result.success) throw new Error(result.message || "Power action failed");
+          showToast(result.message || `Power signal "${signal}" sent.`, "success");
+          setTimeout(refreshServerResources, 1200);
+          setTimeout(refreshServerResources, 4000);
+        } catch (error) {
+          showToast(error.message || "Power action failed", "error");
+        }
+      }
+
+      /* ── Pterodactyl: console ──────────────────────────────────────── */
+      let consoleSocket = null;
+      let consoleTerm = null;
+      let consoleFit = null;
+      let consoleServerId = null;
+
+      async function openServerConsole(identifier) {
+        const server = serversList.find((s) => s.identifier === identifier);
+        try {
+          const response = await apiFetch(`/api/pterodactyl/servers/${encodeURIComponent(identifier)}/websocket`);
+          const result = await response.json();
+          if (!response.ok || !result.success) throw new Error(result.message || "Console unavailable");
+          connectConsoleSocket(identifier, server, result.websocket.socket, result.websocket.token);
+        } catch (error) {
+          showToast(error.message || "Console unavailable", "error");
+        }
+      }
+
+      function connectConsoleSocket(identifier, server, socketUrl, token) {
+        closeConsoleSocket();
+        consoleServerId = identifier;
+        document.getElementById("consoleServerName").textContent = server ? server.name : identifier;
+        document.getElementById("consoleServerMeta").textContent = `Server ${identifier}`;
+        document.getElementById("consoleOverlay").classList.add("open");
+        document.getElementById("consoleDrawer").classList.add("open");
+        const host = document.getElementById("consoleTerminalHost");
+        host.innerHTML = "";
+        if (window.Terminal) {
+          consoleTerm = new Terminal({
+            convertEol: true,
+            fontSize: 13,
+            fontFamily: "SFMono-Regular, Consolas, monospace",
+            theme: { background: "#0a0a0d", foreground: "#e7e9f0", cursor: "#e7e9f0" },
+          });
+          if (window.FitAddon && window.FitAddon.FitAddon) {
+            consoleFit = new FitAddon.FitAddon();
+            consoleTerm.loadAddon(consoleFit);
+          }
+          consoleTerm.open(host);
+          if (consoleFit) setTimeout(() => consoleFit.fit(), 60);
+          consoleTerm.writeln("\x1b[2mConnecting to console…\x1b[0m");
+        }
+        try {
+          consoleSocket = new WebSocket(socketUrl);
+        } catch (_) {
+          if (consoleTerm) consoleTerm.writeln("\x1b[31mInvalid console socket URL.\x1b[0m");
+          return;
+        }
+        consoleSocket.onopen = () => {
+          consoleSocket.send(JSON.stringify({ event: "auth", args: [token] }));
+        };
+        consoleSocket.onmessage = (event) => {
+          let payload;
+          try { payload = JSON.parse(event.data); } catch (_) { return; }
+          if (payload.event === "auth success" && consoleTerm) consoleTerm.writeln("\x1b[32m✓ Console authenticated\x1b[0m");
+          if (payload.event === "token expiring") {
+            apiFetch(`/api/pterodactyl/servers/${encodeURIComponent(identifier)}/websocket`)
+              .then((r) => r.json())
+              .then((r) => {
+                if (r && r.success && r.websocket) consoleSocket.send(JSON.stringify({ event: "auth", args: [r.websocket.token] }));
+              })
+              .catch(() => {});
+          }
+          if (payload.event === "console output" && consoleTerm && payload.args) consoleTerm.writeln(String(payload.args[0] || ""));
+          if (payload.event === "status" && consoleTerm && payload.args) consoleTerm.writeln(`\x1b[2m[status] ${payload.args[0]}\x1b[0m`);
+        };
+        consoleSocket.onerror = () => {
+          if (consoleTerm) consoleTerm.writeln("\x1b[31mConsole connection error.\x1b[0m");
+        };
+        consoleSocket.onclose = () => {
+          if (consoleTerm) consoleTerm.writeln("\x1b[2mConsole disconnected.\x1b[0m");
+        };
+      }
+
+      function closeConsoleSocket() {
+        if (consoleSocket) {
+          try { consoleSocket.close(); } catch (_) {}
+          consoleSocket = null;
+        }
+      }
+
+      function closeServerConsole() {
+        closeConsoleSocket();
+        document.getElementById("consoleOverlay").classList.remove("open");
+        document.getElementById("consoleDrawer").classList.remove("open");
+        consoleServerId = null;
+      }
+
+      function sendConsoleCommand() {
+        const input = document.getElementById("consoleCommandInput");
+        const command = input ? input.value.trim() : "";
+        if (!command || !consoleServerId) return;
+        if (consoleSocket && consoleSocket.readyState === WebSocket.OPEN) {
+          consoleSocket.send(JSON.stringify({ event: "send command", args: [command] }));
+          input.value = "";
+          return;
+        }
+        apiFetch(`/api/pterodactyl/servers/${encodeURIComponent(consoleServerId)}/command`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ command }),
+        })
+          .then((r) => r.json())
+          .then((r) => {
+            if (r && r.success) {
+              showToast("Command sent.", "success");
+              input.value = "";
+            } else {
+              showToast((r && r.message) || "Command failed", "error");
+            }
+          })
+          .catch(() => showToast("Command failed", "error"));
+      }
+
+      document.getElementById("consoleCommandInput").addEventListener("keydown", (event) => {
+        if (event.key === "Enter") sendConsoleCommand();
+      });
+
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape" && document.getElementById("consoleDrawer").classList.contains("open")) closeServerConsole();
+      });
+
+      function formatBytes(bytes) {
+        const value = Number(bytes) || 0;
+        if (value <= 0) return "0 MB";
+        const units = ["B", "KB", "MB", "GB", "TB"];
+        const index = Math.min(units.length - 1, Math.floor(Math.log(value) / Math.log(1024)));
+        const sized = value / Math.pow(1024, index);
+        return `${sized >= 100 ? Math.round(sized) : sized.toFixed(1)} ${units[index]}`;
+      }
+
+      function escapeHtml(value) {
+        return String(value == null ? "" : value)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#39;");
+      }
+
+      function escapeAttr(value) {
+        return escapeHtml(value).replace(/`/g, "&#96;");
       }
 
       window.addEventListener("popstate", () => switchView(viewFromPathname(), false));

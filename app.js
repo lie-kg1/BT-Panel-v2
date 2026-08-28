@@ -30,6 +30,7 @@ const THEME_FILE = path.join(DATA_DIR, "theme.json");
 const MUSIC_FILE = path.join(DATA_DIR, "music.json");
 const GENERAL_FILE = path.join(DATA_DIR, "general.json");
 const BARS_FILE = path.join(DATA_DIR, "bars.json");
+const PTERODACTYL_FILE = path.join(DATA_DIR, "pterodactyl.json");
 const MUSIC_DIR = path.join(MEDIA_DIR, "music");
 const SESSION_COOKIE_NAME = process.env.SESSION_COOKIE_NAME || "botpanel.sid";
 const SESSION_SECRET = process.env.SESSION_SECRET || "change-this-session-secret";
@@ -390,6 +391,130 @@ function saveBars(bars) {
   return saved;
 }
 
+/* ── Pterodactyl integration ─────────────────────────────────────────── */
+
+const DEFAULT_PTERODACTYL = {
+  panelUrl: "",
+  apiKey: "",
+  apiType: "client", // "client" (Account API) or "application" (Admin API)
+  allowInsecure: false,
+};
+
+function normalizePterodactylUrl(value) {
+  let raw = String(value || "").trim();
+  if (!raw) return "";
+  if (!/^https?:\/\//i.test(raw)) raw = `https://${raw}`;
+  try {
+    const url = new URL(raw);
+    if (!/^https?:$/.test(url.protocol)) return "";
+    // strip path/query — only the panel origin is needed
+    return url.origin;
+  } catch (_) {
+    return "";
+  }
+}
+
+function sanitizePterodactyl(input, previous = DEFAULT_PTERODACTYL) {
+  const cfg = input || {};
+  const prev = previous || DEFAULT_PTERODACTYL;
+  return {
+    panelUrl: normalizePterodactylUrl(cfg.panelUrl !== undefined ? cfg.panelUrl : prev.panelUrl),
+    // An empty apiKey field means "keep the stored key" so the settings UI
+    // never has to echo the secret back to the browser.
+    apiKey: cfg.apiKey !== undefined && String(cfg.apiKey).trim() !== ""
+      ? String(cfg.apiKey).trim().slice(0, 128)
+      : (cfg.apiKey === "" && !prev.apiKey ? "" : prev.apiKey),
+    apiType: cfg.apiType === "application" ? "application" : "client",
+    allowInsecure: Boolean(cfg.allowInsecure),
+  };
+}
+
+function loadPterodactyl() {
+  return sanitizePterodactyl(readJson(PTERODACTYL_FILE, DEFAULT_PTERODACTYL), DEFAULT_PTERODACTYL);
+}
+
+function savePterodactyl(cfg) {
+  const saved = sanitizePterodactyl(cfg, loadPterodactyl());
+  writeJson(PTERODACTYL_FILE, saved);
+  return saved;
+}
+
+function publicPterodactyl(cfg) {
+  return {
+    panelUrl: cfg.panelUrl,
+    apiType: cfg.apiType,
+    allowInsecure: cfg.allowInsecure,
+    configured: Boolean(cfg.panelUrl && cfg.apiKey),
+  };
+}
+
+async function pterodactylFetch(endpoint, options = {}) {
+  const cfg = loadPterodactyl();
+  if (!cfg.panelUrl || !cfg.apiKey) {
+    const err = new Error("Pterodactyl is not configured. An administrator can connect a panel in Settings → Pterodactyl.");
+    err.status = 503;
+    throw err;
+  }
+  const base = cfg.apiType === "application" ? "/api/application" : "/api/client";
+  const url = `${cfg.panelUrl}${base}${endpoint}`;
+  const response = await fetch(url, {
+    method: options.method || "GET",
+    headers: {
+      Authorization: `Bearer ${cfg.apiKey}`,
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+    body: options.body !== undefined ? JSON.stringify(options.body) : undefined,
+  });
+  if (response.status === 204) return { ok: true, status: response.status, data: null };
+  const text = await response.text();
+  let data = null;
+  try { data = text ? JSON.parse(text) : null; } catch (_) { data = null; }
+  if (!response.ok) {
+    const first = data && Array.isArray(data.errors) && data.errors[0];
+    const err = new Error((first && (first.detail || first.code)) || `Pterodactyl request failed (HTTP ${response.status}).`);
+    err.status = response.status === 401 || response.status === 403 ? 502 : response.status;
+    throw err;
+  }
+  return { ok: true, status: response.status, data };
+}
+
+function pterodactylServerSummary(entry) {
+  const a = (entry && entry.attributes) || {};
+  return {
+    identifier: a.identifier,
+    uuid: a.uuid,
+    name: a.name,
+    node: a.node,
+    description: a.description || "",
+    status: a.status || null,
+    suspended: Boolean(a.suspended),
+    limits: a.limits || {},
+    featureLimits: a.feature_limits || {},
+    egg: a.egg || null,
+    nest: a.nest || null,
+  };
+}
+
+function pterodactylResources(entry) {
+  const a = (entry && entry.attributes) || {};
+  const current = a.current_state || a.status || "unknown";
+  const resources = a.resources || {};
+  return {
+    state: current,
+    suspended: Boolean(a.is_suspended),
+    memoryBytes: resources.memory_bytes ?? null,
+    memoryLimitBytes: resources.memory_limit_bytes ?? null,
+    cpuAbsolute: resources.cpu_absolute ?? null,
+    diskBytes: resources.disk_bytes ?? null,
+    networkRxBytes: resources.network_rx_bytes ?? null,
+    networkTxBytes: resources.network_tx_bytes ?? null,
+    uptimeMs: resources.uptime ?? null,
+  };
+}
+
+/* ── End Pterodactyl integration ─────────────────────────────────────── */
+
 function authRequired(req, res, next) {
   const user = currentUser(req);
   if (!user) return res.status(401).json({ success: false, message: "Authentication required." });
@@ -482,7 +607,7 @@ app.get("/settings", (req, res) => {
   if (!user || !["owner", "admin"].includes(user.role)) return res.redirect("/music");
   res.render("admin/dashboard");
 });
-app.get(["/team", "/users", "/account", "/music"], (req, res) => {
+app.get(["/team", "/users", "/account", "/music", "/servers"], (req, res) => {
   if (!currentUser(req)) return res.redirect("/login");
   res.render("admin/dashboard");
 });
@@ -751,6 +876,99 @@ app.post("/api/me/password", authRequired, async (req, res) => {
   saveUsers(data);
   res.json({ success: true });
 });
+
+/* ── Pterodactyl routes ─────────────────────────────────────────────── */
+
+const PTERODACTYL_POWER_SIGNALS = new Set(["start", "stop", "restart", "kill"]);
+
+function validServerIdentifier(value) {
+  // Pterodactyl identifiers are 8-char hex; allow a little slack but stay strict.
+  return /^[a-zA-Z0-9-]{6,64}$/.test(String(value || ""));
+}
+
+async function pterodactylHandler(res, fn) {
+  try {
+    const result = await fn();
+    res.json({ success: true, ...result });
+  } catch (error) {
+    const status = Number.isInteger(error.status) && error.status >= 400 && error.status < 600 ? error.status : 502;
+    res.status(status).json({ success: false, message: error.message || "Pterodactyl request failed." });
+  }
+}
+
+const pterodactylDemoMode = process.env.PTERODACTYL_DEMO === "1";
+if (pterodactylDemoMode) {
+  const { startPterodactylDemo } = require("./scripts/pterodactyl-demo");
+  startPterodactylDemo();
+}
+
+app.get("/api/pterodactyl/config", authRequired, (_req, res) => {
+  res.json({ success: true, pterodactyl: publicPterodactyl(loadPterodactyl()) });
+});
+
+app.post("/api/pterodactyl/config", adminRequired, (req, res) => {
+  const saved = savePterodactyl(req.body && typeof req.body === "object" ? req.body : {});
+  res.json({ success: true, pterodactyl: publicPterodactyl(saved) });
+});
+
+app.post("/api/pterodactyl/test", adminRequired, async (req, res) => {
+  await pterodactylHandler(res, async () => {
+    const endpoint = loadPterodactyl().apiType === "application" ? "/servers?per_page=1" : "";
+    const result = await pterodactylFetch(endpoint || "");
+    const data = result.data || {};
+    const count = data && data.meta && data.meta.pagination ? data.meta.pagination.total : undefined;
+    return { message: count !== undefined ? `Connected. ${count} server(s) visible to this API key.` : "Connected successfully." };
+  });
+});
+
+app.get("/api/pterodactyl/servers", authRequired, async (_req, res) => {
+  await pterodactylHandler(res, async () => {
+    const result = await pterodactylFetch("");
+    const list = Array.isArray(result.data && result.data.data) ? result.data.data : [];
+    return { servers: list.map(pterodactylServerSummary) };
+  });
+});
+
+app.get("/api/pterodactyl/servers/:id/resources", authRequired, async (req, res) => {
+  if (!validServerIdentifier(req.params.id)) return res.status(400).json({ success: false, message: "Invalid server identifier." });
+  await pterodactylHandler(res, async () => {
+    const result = await pterodactylFetch(`/servers/${encodeURIComponent(req.params.id)}/resources`);
+    return { resources: pterodactylResources(result.data) };
+  });
+});
+
+app.post("/api/pterodactyl/servers/:id/power", authRequired, async (req, res) => {
+  if (!validServerIdentifier(req.params.id)) return res.status(400).json({ success: false, message: "Invalid server identifier." });
+  const signal = String(req.body && req.body.signal || "").toLowerCase();
+  if (!PTERODACTYL_POWER_SIGNALS.has(signal)) return res.status(400).json({ success: false, message: "Signal must be start, stop, restart, or kill." });
+  await pterodactylHandler(res, async () => {
+    await pterodactylFetch(`/servers/${encodeURIComponent(req.params.id)}/power`, { method: "POST", body: { signal } });
+    return { message: `Power signal "${signal}" sent.` };
+  });
+});
+
+app.post("/api/pterodactyl/servers/:id/command", authRequired, async (req, res) => {
+  if (!validServerIdentifier(req.params.id)) return res.status(400).json({ success: false, message: "Invalid server identifier." });
+  const command = String(req.body && req.body.command || "").slice(0, 500);
+  if (!command.trim()) return res.status(400).json({ success: false, message: "Command is required." });
+  await pterodactylHandler(res, async () => {
+    await pterodactylFetch(`/servers/${encodeURIComponent(req.params.id)}/command`, { method: "POST", body: { command } });
+    return { message: "Command sent." };
+  });
+});
+
+app.get("/api/pterodactyl/servers/:id/websocket", authRequired, async (req, res) => {
+  if (!validServerIdentifier(req.params.id)) return res.status(400).json({ success: false, message: "Invalid server identifier." });
+  if (loadPterodactyl().apiType !== "client") return res.status(400).json({ success: false, message: "Console access requires the Client API type." });
+  await pterodactylHandler(res, async () => {
+    const result = await pterodactylFetch(`/servers/${encodeURIComponent(req.params.id)}/websocket`);
+    const data = (result.data && result.data.data) || {};
+    if (!data.socket || !data.token) throw new Error("Pterodactyl did not return console credentials.");
+    return { websocket: { socket: data.socket, token: data.token } };
+  });
+});
+
+/* ── End Pterodactyl routes ─────────────────────────────────────────── */
 
 app.use((req, res, next) => {
   if (req.path.startsWith("/api/")) {

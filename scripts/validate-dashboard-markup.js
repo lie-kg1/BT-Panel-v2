@@ -81,8 +81,29 @@ for (const removedTab of [
     throw new Error(`Removed settings control is still present: ${removedTab}`);
   }
 }
-if (!source.includes('const SETTINGS_TABS = ["appearance", "wallpapers", "general", "music", "bars"]')) {
+if (!source.includes('const SETTINGS_TABS = ["appearance", "wallpapers", "general", "music", "bars", "pterodactyl"]')) {
   throw new Error("Remaining settings tab allowlist is incorrect");
+}
+for (const pterodactylSnippet of [
+  'id="nav-servers"',
+  'id="view-servers"',
+  'id="settings-tab-pterodactyl"',
+  'id="settings-panel-pterodactyl"',
+  'id="serversGrid"',
+  'id="consoleDrawer"',
+  "function initServersView()",
+  "function sendPowerSignal(",
+  "function openServerConsole(",
+  "function savePterodactylSettings",
+  "servers: \"/servers\"",
+  "/api/pterodactyl/servers",
+]) {
+  if (!source.includes(pterodactylSnippet)) {
+    throw new Error(`Missing Pterodactyl integration markup: ${pterodactylSnippet}`);
+  }
+}
+if (!serverSource.includes("/api/pterodactyl/config") || !serverSource.includes("pterodactylFetch")) {
+  throw new Error("Pterodactyl API routes are missing from the server");
 }
 for (const removedBannerMarker of ["settings-status", "Settings are ready to customize."]) {
   if (source.includes(removedBannerMarker)) {
@@ -182,7 +203,7 @@ for (const musicSnippet of [
   'const MUSIC_FILE = path.join(DATA_DIR, "music.json")',
   'app.get("/api/music", authRequired',
   'app.get("/settings", (req, res) => {',
-  'app.get(["/team", "/users", "/account", "/music"]',
+  'app.get(["/team", "/users", "/account", "/music", "/servers"]',
   'app.post("/api/music/track", adminRequired',
   'app.post("/api/music/upload", adminRequired',
   'app.delete("/api/music/:id", adminRequired',
